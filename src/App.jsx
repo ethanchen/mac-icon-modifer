@@ -259,15 +259,12 @@ const MacIconMaker = () => {
         </div>
       </header>
 
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* 左侧：控制面板 */}
-        <div className="lg:col-span-4 space-y-6">
-          
-          {/* 上传和预览合并区域 */}
-          {/* 上传和预览合并区域 */}
+        {/* 第一块：图片区域 */}
+        <div className="flex flex-col">
           <div 
-            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex items-center justify-center p-6 ${
+            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex items-center justify-center p-6 overflow-hidden ${
               image 
                 ? 'border-gray-200' 
                 : `hover:border-blue-400 group ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} cursor-pointer`
@@ -300,38 +297,37 @@ const MacIconMaker = () => {
             
             {image ? (
               /* 有图片时：显示预览画布和右上角上传按钮 */
-              <div className="relative w-full">
-                <div className="bg-white/50 backdrop-blur-sm p-8 rounded-3xl border border-gray-200 shadow-xl mx-auto max-w-fit relative">
-                  <canvas 
-                    ref={canvasRef} 
-                    width={CANVAS_SIZE} 
-                    height={CANVAS_SIZE}
-                    className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] object-contain shadow-sm rounded-lg"
-                  />
-                  {/* 右上角上传按钮 */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      document.getElementById('fileUpload').click();
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const file = e.dataTransfer.files?.[0];
-                      if (file) {
-                        processFile(file);
-                      }
-                    }}
-                    className="absolute -top-2 -right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                    title="重新上传"
-                  >
-                    <Upload size={18} />
-                  </button>
-                </div>
+              <div className="relative w-full h-full flex items-center justify-center">
+                <canvas 
+                  ref={canvasRef} 
+                  width={CANVAS_SIZE} 
+                  height={CANVAS_SIZE}
+                  className="max-w-full max-h-full w-auto h-auto object-contain"
+                  style={{ maxWidth: '100%', maxHeight: 'calc(100% - 3rem)' }}
+                />
+                {/* 右上角上传按钮 */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    document.getElementById('fileUpload').click();
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) {
+                      processFile(file);
+                    }
+                  }}
+                  className="absolute top-2 right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                  title="重新上传"
+                >
+                  <Upload size={18} />
+                </button>
               </div>
             ) : (
               /* 无图片时：显示上传提示 */
@@ -345,8 +341,10 @@ const MacIconMaker = () => {
               </div>
             )}
           </div>
+        </div>
 
-          {/* 详细参数 */}
+        {/* 第二块：调整区域 */}
+        <div className="flex flex-col">
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-5">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
@@ -456,11 +454,9 @@ const MacIconMaker = () => {
           </div>
         </div>
 
-        {/* 右侧：下载和说明 */}
-        <div className="lg:col-span-8 flex flex-col items-center justify-start">
-          
-          {/* 底部操作栏 */}
-          <div className="w-full max-w-lg flex flex-col items-center gap-4">
+        {/* 第三块：下载说明区域 */}
+        <div className="flex flex-col">
+          <div className="w-full flex flex-col gap-4">
              <button 
               onClick={handleDownload}
               className={`flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-semibold shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-95 ${image ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
@@ -486,7 +482,6 @@ const MacIconMaker = () => {
                 </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
