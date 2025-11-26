@@ -256,12 +256,12 @@ const MacIconMaker = () => {
         </div>
       </header>
 
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
         
         {/* 第一块：图片区域 */}
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full">
           <div 
-            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex flex-col p-6 overflow-hidden ${
+            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex flex-col p-6 overflow-hidden h-full ${
               image 
                 ? 'border-gray-200' 
                 : `hover:border-blue-400 group ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} cursor-pointer`
@@ -395,8 +395,8 @@ const MacIconMaker = () => {
         </div>
 
         {/* 第二块：调整区域 */}
-        <div className="flex flex-col">
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-5">
+        <div className="flex flex-col h-full">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-5 h-full flex flex-col">
             <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
               <Settings size={14} /> 图标调整
             </h3>
@@ -513,8 +513,8 @@ const MacIconMaker = () => {
         </div>
 
         {/* 第三块：说明区域 */}
-        <div className="flex flex-col">
-          <div className="w-full flex flex-col gap-4">
+        <div className="flex flex-col h-full">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col">
             {/* 使用说明 */}
             <div className="w-full bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
                 <div className="flex items-start gap-3">
