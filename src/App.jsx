@@ -254,9 +254,6 @@ const MacIconMaker = () => {
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">macOS 图标工坊</h1>
         </div>
-        <div className="text-sm text-gray-500 hidden md:block">
-          支持 ICNS, PNG, JPG, SVG
-        </div>
       </header>
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -495,22 +492,22 @@ const MacIconMaker = () => {
 
              {/* 背景色 */}
              <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-gray-500">启用背景色</label>
-                <div className="flex items-center gap-3">
-                    <input 
-                        type="color" 
-                        value={settings.bgColor}
-                        onChange={(e) => setSettings({...settings, bgColor: e.target.value})}
-                        className="w-8 h-8 rounded cursor-pointer border-0 p-0 overflow-hidden"
-                        disabled={!settings.useBg}
-                    />
-                    <button 
-                        onClick={() => setSettings({...settings, useBg: !settings.useBg})}
-                        className={`w-10 h-6 rounded-full transition-colors relative ${settings.useBg ? 'bg-blue-600' : 'bg-gray-300'}`}
-                    >
-                        <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.useBg ? 'translate-x-4' : ''}`} />
-                    </button>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-gray-500">启用背景色</label>
+                  <input 
+                      type="color" 
+                      value={settings.bgColor}
+                      onChange={(e) => setSettings({...settings, bgColor: e.target.value})}
+                      className="w-8 h-8 cursor-pointer p-0 overflow-hidden"
+                      disabled={!settings.useBg}
+                  />
                 </div>
+                <button 
+                    onClick={() => setSettings({...settings, useBg: !settings.useBg})}
+                    className={`w-10 h-6 rounded-full transition-colors relative ${settings.useBg ? 'bg-blue-600' : 'bg-gray-300'}`}
+                >
+                    <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.useBg ? 'translate-x-4' : ''}`} />
+                </button>
             </div>
           </div>
         </div>
