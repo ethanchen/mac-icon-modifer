@@ -516,19 +516,13 @@ const MacIconMaker = () => {
         <div className="flex flex-col h-full">
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col">
             {/* 使用说明 */}
-            <div className="w-full bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
-                <div className="flex items-start gap-3">
-                    <Info className="shrink-0 mt-0.5" size={16} />
-                    <div>
-                        <p className="font-semibold mb-1">如何应用到 Mac App？</p>
-                        <ol className="list-decimal pl-4 space-y-1 text-blue-700/80">
-                            <li>点击上方按钮下载生成的图片。</li>
-                            <li>双击打开下载的图片，按 <kbd className="bg-white/50 px-1 rounded">Cmd+C</kbd> 复制。</li>
-                            <li>在 Finder 中找到你要修改的 App，按 <kbd className="bg-white/50 px-1 rounded">Cmd+I</kbd> 打开简介。</li>
-                            <li>点击左上角的小图标，按 <kbd className="bg-white/50 px-1 rounded">Cmd+V</kbd> 粘贴即可。</li>
-                        </ol>
-                    </div>
-                </div>
+            <div className="w-full">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">如何应用到 Mac App？</h3>
+                <ol className="list-decimal pl-4 space-y-2 text-sm text-gray-700">
+                    <li>在预览图片上右键，选择"复制图片"（或按 <kbd className="bg-gray-100 px-1 rounded">Cmd+C</kbd>）。</li>
+                    <li>在 Finder 中找到你要修改的 App，按 <kbd className="bg-gray-100 px-1 rounded">Cmd+I</kbd> 打开简介。</li>
+                    <li>点击左上角的小图标，按 <kbd className="bg-gray-100 px-1 rounded">Cmd+V</kbd> 粘贴即可。</li>
+                </ol>
             </div>
           </div>
         </div>
