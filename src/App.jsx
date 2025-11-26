@@ -264,7 +264,7 @@ const MacIconMaker = () => {
         {/* 第一块：图片区域 */}
         <div className="flex flex-col">
           <div 
-            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex items-center justify-center p-6 overflow-hidden ${
+            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex flex-col p-6 overflow-hidden ${
               image 
                 ? 'border-gray-200' 
                 : `hover:border-blue-400 group ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} cursor-pointer`
@@ -296,16 +296,31 @@ const MacIconMaker = () => {
             />
             
             {image ? (
-              /* 有图片时：显示预览画布和右上角上传按钮 */
-              <div className="relative w-full h-full flex items-center justify-center">
+              /* 有图片时：显示预览画布 */
+              <div className="relative w-full flex-1 flex items-center justify-center mb-4">
                 <canvas 
                   ref={canvasRef} 
                   width={CANVAS_SIZE} 
                   height={CANVAS_SIZE}
                   className="max-w-full max-h-full w-auto h-auto object-contain"
-                  style={{ maxWidth: '100%', maxHeight: 'calc(100% - 3rem)' }}
+                  style={{ maxWidth: '100%', maxHeight: '100%' }}
                 />
-                {/* 右上角上传按钮 */}
+              </div>
+            ) : (
+              /* 无图片时：显示上传提示 */
+              <div className="text-center w-full flex-1 flex flex-col items-center justify-center">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${error ? 'bg-red-100 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
+                  {error ? <AlertCircle size={28} /> : <Upload size={28} />}
+                </div>
+                <h3 className="font-semibold text-gray-900">点击或拖拽上传</h3>
+                <p className="text-xs text-gray-500 mt-1">支持 PNG, JPG, SVG, ICNS</p>
+                {error && <p className="text-xs text-red-500 mt-2 font-medium">{error}</p>}
+              </div>
+            )}
+            
+            {/* 底部按钮区域 */}
+            {image && (
+              <div className="flex gap-2 mt-auto">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -323,21 +338,21 @@ const MacIconMaker = () => {
                       processFile(file);
                     }
                   }}
-                  className="absolute top-2 right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
-                  title="重新上传"
+                  className="flex items-center gap-1 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg shadow transition-all hover:scale-105 active:scale-95 text-sm flex-1"
                 >
-                  <Upload size={18} />
+                  <Upload size={14} />
+                  <span>重新上传</span>
                 </button>
-              </div>
-            ) : (
-              /* 无图片时：显示上传提示 */
-              <div className="text-center w-full">
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${error ? 'bg-red-100 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
-                  {error ? <AlertCircle size={28} /> : <Upload size={28} />}
-                </div>
-                <h3 className="font-semibold text-gray-900">点击或拖拽上传</h3>
-                <p className="text-xs text-gray-500 mt-1">支持 PNG, JPG, SVG, ICNS</p>
-                {error && <p className="text-xs text-red-500 mt-2 font-medium">{error}</p>}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload();
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg shadow-blue-500/30 transition-all hover:scale-105 active:scale-95 text-sm flex-1 font-semibold"
+                >
+                  <Download size={16} />
+                  <span>下载 PNG 图标</span>
+                </button>
               </div>
             )}
           </div>
@@ -346,33 +361,40 @@ const MacIconMaker = () => {
         {/* 第二块：调整区域 */}
         <div className="flex flex-col">
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                <Settings size={14} /> 细节调整
-              </h3>
-              {/* 快速预设按钮 - 放在右上角 */}
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); applyPreset('macos'); }} 
-                  className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
-                  title="macOS"
-                >
-                  <Layout className="text-blue-600" size={16} />
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); applyPreset('ios'); }} 
-                  className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
-                  title="iOS / 平铺"
-                >
-                  <Smartphone className="text-gray-600" size={16} />
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); applyPreset('circle'); }} 
-                  className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
-                  title="圆形"
-                >
-                  <Circle className="text-green-600" size={16} />
-                </button>
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <Settings size={14} /> 图标调整
+            </h3>
+            
+            {/* 快速预设按钮 - 单独一行 */}
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-500 whitespace-nowrap">预设：</span>
+                <div className="flex items-center gap-2 flex-1">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); applyPreset('macos'); }} 
+                    className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 transition-colors flex-1"
+                    title="macOS"
+                  >
+                    <Layout className="text-gray-600 mb-1" size={16} />
+                    <span className="text-xs text-gray-600">macOS</span>
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); applyPreset('ios'); }} 
+                    className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 transition-colors flex-1"
+                    title="iOS / 平铺"
+                  >
+                    <Smartphone className="text-gray-600 mb-1" size={16} />
+                    <span className="text-xs text-gray-600">iOS</span>
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); applyPreset('circle'); }} 
+                    className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 transition-colors flex-1"
+                    title="圆形"
+                  >
+                    <Circle className="text-gray-600 mb-1" size={16} />
+                    <span className="text-xs text-gray-600">圆形</span>
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -454,18 +476,9 @@ const MacIconMaker = () => {
           </div>
         </div>
 
-        {/* 第三块：下载说明区域 */}
+        {/* 第三块：说明区域 */}
         <div className="flex flex-col">
           <div className="w-full flex flex-col gap-4">
-             <button 
-              onClick={handleDownload}
-              className={`flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-semibold shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-95 ${image ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
-              disabled={!image}
-            >
-              <Download size={20} />
-              下载 PNG 图标
-            </button>
-            
             {/* 使用说明 */}
             <div className="w-full bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
                 <div className="flex items-start gap-3">
