@@ -264,12 +264,31 @@ const MacIconMaker = () => {
         {/* 左侧：控制面板 */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* 上传区域 */}
+          {/* 上传和预览合并区域 */}
+          {/* 上传和预览合并区域 */}
           <div 
-            className={`bg-white p-6 rounded-2xl shadow-sm border text-center transition-all hover:border-blue-400 group cursor-pointer ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('fileUpload').click()}
+            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex items-center justify-center p-6 ${
+              image 
+                ? 'border-gray-200' 
+                : `hover:border-blue-400 group ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} cursor-pointer`
+            }`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const file = e.dataTransfer.files?.[0];
+              if (file) {
+                processFile(file);
+              }
+            }}
+            onClick={() => {
+              if (!image) {
+                document.getElementById('fileUpload').click();
+              }
+            }}
           >
             <input 
               id="fileUpload" 
@@ -278,40 +297,86 @@ const MacIconMaker = () => {
               className="hidden" 
               onChange={handleImageUpload} 
             />
-            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${error ? 'bg-red-100 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
-              {error ? <AlertCircle size={28} /> : <Upload size={28} />}
-            </div>
-            <h3 className="font-semibold text-gray-900">点击或拖拽上传</h3>
-            <p className="text-xs text-gray-500 mt-1">支持 PNG, JPG, SVG, ICNS</p>
-            {error && <p className="text-xs text-red-500 mt-2 font-medium">{error}</p>}
-          </div>
-
-          {/* 预设按钮 */}
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <RefreshCw size={14} /> 快速预设
-            </h3>
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => applyPreset('macos')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors">
-                <Layout className="mb-2 text-blue-600" size={20} />
-                <span className="text-xs font-medium">macOS</span>
-              </button>
-              <button onClick={() => applyPreset('ios')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors">
-                <Smartphone className="mb-2 text-gray-600" size={20} />
-                <span className="text-xs font-medium">iOS / 平铺</span>
-              </button>
-              <button onClick={() => applyPreset('circle')} className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors">
-                <Circle className="mb-2 text-green-600" size={20} />
-                <span className="text-xs font-medium">圆形</span>
-              </button>
-            </div>
+            
+            {image ? (
+              /* 有图片时：显示预览画布和右上角上传按钮 */
+              <div className="relative w-full">
+                <div className="bg-white/50 backdrop-blur-sm p-8 rounded-3xl border border-gray-200 shadow-xl mx-auto max-w-fit relative">
+                  <canvas 
+                    ref={canvasRef} 
+                    width={CANVAS_SIZE} 
+                    height={CANVAS_SIZE}
+                    className="w-[300px] h-[300px] md:w-[400px] md:h-[400px] object-contain shadow-sm rounded-lg"
+                  />
+                  {/* 右上角上传按钮 */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      document.getElementById('fileUpload').click();
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        processFile(file);
+                      }
+                    }}
+                    className="absolute -top-2 -right-2 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-10"
+                    title="重新上传"
+                  >
+                    <Upload size={18} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* 无图片时：显示上传提示 */
+              <div className="text-center w-full">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${error ? 'bg-red-100 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
+                  {error ? <AlertCircle size={28} /> : <Upload size={28} />}
+                </div>
+                <h3 className="font-semibold text-gray-900">点击或拖拽上传</h3>
+                <p className="text-xs text-gray-500 mt-1">支持 PNG, JPG, SVG, ICNS</p>
+                {error && <p className="text-xs text-red-500 mt-2 font-medium">{error}</p>}
+              </div>
+            )}
           </div>
 
           {/* 详细参数 */}
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 space-y-5">
-            <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-              <Settings size={14} /> 细节调整
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <Settings size={14} /> 细节调整
+              </h3>
+              {/* 快速预设按钮 - 放在右上角 */}
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); applyPreset('macos'); }} 
+                  className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
+                  title="macOS"
+                >
+                  <Layout className="text-blue-600" size={16} />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); applyPreset('ios'); }} 
+                  className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
+                  title="iOS / 平铺"
+                >
+                  <Smartphone className="text-gray-600" size={16} />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); applyPreset('circle'); }} 
+                  className="flex items-center justify-center p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-colors"
+                  title="圆形"
+                >
+                  <Circle className="text-green-600" size={16} />
+                </button>
+              </div>
+            </div>
             
             {/* 圆角 */}
             <div>
@@ -391,22 +456,9 @@ const MacIconMaker = () => {
           </div>
         </div>
 
-        {/* 右侧：预览与下载 */}
-        <div className="lg:col-span-8 flex flex-col items-center">
+        {/* 右侧：下载和说明 */}
+        <div className="lg:col-span-8 flex flex-col items-center justify-start">
           
-          <div className="relative group">
-            {/* 画布容器 */}
-            <div className="bg-white/50 backdrop-blur-sm p-8 rounded-3xl border border-gray-200 shadow-xl mb-6">
-               {/* 实际显示给用户的 Canvas 会通过 CSS 缩小，但内部是高清的 */}
-               <canvas 
-                ref={canvasRef} 
-                width={CANVAS_SIZE} 
-                height={CANVAS_SIZE}
-                className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] object-contain shadow-sm rounded-lg"
-              />
-            </div>
-          </div>
-
           {/* 底部操作栏 */}
           <div className="w-full max-w-lg flex flex-col items-center gap-4">
              <button 
