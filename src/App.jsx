@@ -298,13 +298,52 @@ const MacIconMaker = () => {
             {image ? (
               /* 有图片时：显示预览画布 */
               <div className="relative w-full flex-1 flex items-center justify-center mb-4">
-                <canvas 
-                  ref={canvasRef} 
-                  width={CANVAS_SIZE} 
-                  height={CANVAS_SIZE}
-                  className="max-w-full max-h-full w-auto h-auto object-contain"
-                  style={{ maxWidth: '100%', maxHeight: '100%' }}
-                />
+                <div className="relative inline-grid grid-cols-[24px_1fr_24px] grid-rows-[24px_1fr_24px]">
+                  {/* 左上角 */}
+                  <div className="w-6 h-6 border-r border-b border-gray-300 bg-gray-50/90"></div>
+                  {/* 上标尺 */}
+                  <div className="border-b border-gray-300 bg-gray-50/90 flex items-end justify-between px-2 text-[10px] text-gray-500 font-mono">
+                    <span>0</span>
+                    <span>{CANVAS_SIZE / 2}px</span>
+                    <span>{CANVAS_SIZE}px</span>
+                  </div>
+                  {/* 右上角 */}
+                  <div className="w-6 h-6 border-l border-b border-gray-300 bg-gray-50/90"></div>
+                  
+                  {/* 左标尺 */}
+                  <div className="border-r border-gray-300 bg-gray-50/90 flex flex-col items-end justify-between py-2 text-[10px] text-gray-500 font-mono">
+                    <span>0</span>
+                    <span>{CANVAS_SIZE / 2}</span>
+                    <span>{CANVAS_SIZE}</span>
+                  </div>
+                  {/* Canvas */}
+                  <div className="relative">
+                    <canvas 
+                      ref={canvasRef} 
+                      width={CANVAS_SIZE} 
+                      height={CANVAS_SIZE}
+                      className="max-w-full max-h-full w-auto h-auto object-contain block border border-gray-200"
+                      style={{ maxWidth: '100%', maxHeight: '100%' }}
+                    />
+                  </div>
+                  {/* 右标尺 */}
+                  <div className="border-l border-gray-300 bg-gray-50/90 flex flex-col items-start justify-between py-2 text-[10px] text-gray-500 font-mono">
+                    <span>0</span>
+                    <span>{CANVAS_SIZE / 2}</span>
+                    <span>{CANVAS_SIZE}</span>
+                  </div>
+                  
+                  {/* 左下角 */}
+                  <div className="w-6 h-6 border-r border-t border-gray-300 bg-gray-50/90"></div>
+                  {/* 下标尺 */}
+                  <div className="border-t border-gray-300 bg-gray-50/90 flex items-start justify-between px-2 text-[10px] text-gray-500 font-mono">
+                    <span>0</span>
+                    <span>{CANVAS_SIZE / 2}px</span>
+                    <span>{CANVAS_SIZE}px</span>
+                  </div>
+                  {/* 右下角 */}
+                  <div className="w-6 h-6 border-l border-t border-gray-300 bg-gray-50/90"></div>
+                </div>
               </div>
             ) : (
               /* 无图片时：显示上传提示 */
