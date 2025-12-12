@@ -1,0 +1,17 @@
+{
+    "name": "macOS Icon Modifier",
+    "short_name": "IconMod",
+    "description": "Create macOS style icons easily",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "start_url": "./",
+    "icons": [
+        {
+            "src": "icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
