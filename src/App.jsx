@@ -6,17 +6,17 @@ const MacIconMaker = () => {
   const [image, setImage] = useState(null);
   const [fileName, setFileName] = useState('icon');
   const [error, setError] = useState(null);
-  
+
   // 默认设置为 macOS Big Sur+ 风格
   const [settings, setSettings] = useState({
-    radius: 225, // 1024px 画布下的标准 macOS 圆角近似值
-    padding: 100,
+    radius: 185, // 适配 824px 尺寸的圆角 ( ~22.4% )
+    margin: 100, // 标准 macOS 图标保留安全边距
     shadowBlur: 30,
     shadowOpacity: 0.4,
     shadowY: 15,
     bgColor: '#ffffff',
     useBg: true,
-    scale: 1,
+    scale: 0.78,
   });
 
   // 画布尺寸 (高清导出用)
@@ -30,7 +30,7 @@ const MacIconMaker = () => {
   // ICNS 解析逻辑
   const parseIcns = (buffer) => {
     const view = new DataView(buffer);
-    
+
     // 检查 Magic Bytes: 'icns'
     const magic = String.fromCharCode(view.getUint8(0), view.getUint8(1), view.getUint8(2), view.getUint8(3));
     if (magic !== 'icns') {
@@ -50,15 +50,15 @@ const MacIconMaker = () => {
       const dataSize = size - 8;
 
       if (dataSize <= 0 || offset + size > fileSize) {
-          offset += size;
-          continue;
+        offset += size;
+        continue;
       }
 
       // 检查是否是 PNG (89 50 4E 47) 或 JPEG (FF D8)
       // 许多现代 ICNS 实际上只是包装了 PNG 文件
       const b0 = view.getUint8(dataOffset);
       const b1 = view.getUint8(dataOffset + 1);
-      
+
       let mimeType = null;
       if (b0 === 0x89 && b1 === 0x50) {
         mimeType = 'image/png';
@@ -132,14 +132,14 @@ const MacIconMaker = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
+
     // 清空画布
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    const { radius, padding, shadowBlur, shadowOpacity, shadowY, bgColor, useBg, scale } = settings;
-    
+    const { radius, margin, shadowBlur, shadowOpacity, shadowY, bgColor, useBg, scale } = settings;
+
     // 计算实际绘制区域（留出阴影空间）
-    const margin = 60; 
+    // const margin = 60; // Removed hardcoded margin
     const drawSize = CANVAS_SIZE - (margin * 2);
     const x = margin;
     const y = margin;
@@ -153,11 +153,11 @@ const MacIconMaker = () => {
     ctx.shadowOffsetY = shadowY;
     ctx.shadowOffsetX = 0;
     if (useBg) {
-        ctx.fillStyle = bgColor;
-        ctx.fill();
+      ctx.fillStyle = bgColor;
+      ctx.fill();
     } else {
-        ctx.fillStyle = '#ffffff'; 
-        ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
     }
     ctx.restore();
 
@@ -175,21 +175,21 @@ const MacIconMaker = () => {
 
     // 4. 绘制图片
     if (image) {
-      const imgSize = drawSize - (padding * 2);
-      
+      const imgSize = drawSize;
+
       // 计算图片保持比例的尺寸
       let drawW = imgSize * scale;
       let drawH = imgSize * scale;
       const aspect = image.width / image.height;
-      
+
       if (aspect > 1) {
         drawH = drawW / aspect;
       } else {
         drawW = drawH * aspect;
       }
 
-      const imgX = x + padding + (imgSize - drawW) / 2;
-      const imgY = y + padding + (imgSize - drawH) / 2;
+      const imgX = x + (imgSize - drawW) / 2;
+      const imgY = y + (imgSize - drawH) / 2;
 
       ctx.drawImage(image, imgX, imgY, drawW, drawH);
     } else {
@@ -201,7 +201,7 @@ const MacIconMaker = () => {
       ctx.fillStyle = '#9ca3af';
       ctx.fillText('拖入图片', CANVAS_SIZE / 2, CANVAS_SIZE / 2);
     }
-    
+
     ctx.restore();
 
   }, [image, settings]);
@@ -230,13 +230,13 @@ const MacIconMaker = () => {
   const applyPreset = (type) => {
     switch (type) {
       case 'macos':
-        setSettings(s => ({ ...s, radius: 225, padding: 100, shadowOpacity: 0.4, scale: 1 }));
+        setSettings(s => ({ ...s, radius: 185, margin: 100, shadowOpacity: 0.4, shadowBlur: 30, shadowY: 15, scale: 0.78 }));
         break;
       case 'ios':
-        setSettings(s => ({ ...s, radius: 180, padding: 0, shadowOpacity: 0, shadowY: 0, scale: 1 }));
+        setSettings(s => ({ ...s, radius: 190, margin: 60, shadowOpacity: 0, shadowY: 0, scale: 1 }));
         break;
       case 'circle':
-        setSettings(s => ({ ...s, radius: 512, padding: 80, scale: 0.9 }));
+        setSettings(s => ({ ...s, radius: 512, margin: 60, scale: 0.74 }));
         break;
       default:
         break;
@@ -245,7 +245,7 @@ const MacIconMaker = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-blue-100 p-4 md:p-8 flex flex-col items-center">
-      
+
       {/* 头部 */}
       <header className="w-full max-w-6xl mb-8 flex justify-between items-center">
         <div className="flex items-center gap-3">
@@ -257,15 +257,14 @@ const MacIconMaker = () => {
       </header>
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-        
+
         {/* 第一块：图片区域 */}
         <div className="flex flex-col h-full">
-          <div 
-            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex flex-col p-6 overflow-hidden h-full ${
-              image 
-                ? 'border-gray-200' 
-                : `hover:border-blue-400 group ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} cursor-pointer`
-            }`}
+          <div
+            className={`bg-white rounded-2xl shadow-sm border transition-all relative min-h-[400px] flex flex-col p-6 overflow-hidden h-full ${image
+              ? 'border-gray-200'
+              : `hover:border-blue-400 group ${error ? 'border-red-300 bg-red-50' : 'border-gray-200'} cursor-pointer`
+              }`}
             onDragOver={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -284,14 +283,14 @@ const MacIconMaker = () => {
               }
             }}
           >
-            <input 
-              id="fileUpload" 
-              type="file" 
-              accept="image/*,.icns" 
-              className="hidden" 
-              onChange={handleImageUpload} 
+            <input
+              id="fileUpload"
+              type="file"
+              accept="image/*,.icns"
+              className="hidden"
+              onChange={handleImageUpload}
             />
-            
+
             {image ? (
               /* 有图片时：显示预览画布 */
               <div className="relative w-full flex-1 flex items-center justify-center mb-4">
@@ -306,7 +305,7 @@ const MacIconMaker = () => {
                   </div>
                   {/* 右上角 */}
                   <div className="w-6 h-6 border-l border-b border-gray-300 bg-gray-50/90"></div>
-                  
+
                   {/* 左标尺 */}
                   <div className="border-r border-gray-300 bg-gray-50/90 flex flex-col items-end justify-between py-2 text-[10px] text-gray-500 font-mono">
                     <span>0</span>
@@ -314,10 +313,18 @@ const MacIconMaker = () => {
                     <span>{CANVAS_SIZE}</span>
                   </div>
                   {/* Canvas */}
-                  <div className="relative">
-                    <canvas 
-                      ref={canvasRef} 
-                      width={CANVAS_SIZE} 
+                  <div
+                    className="relative"
+                    style={{
+                      backgroundColor: '#ffffff',
+                      backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)',
+                      backgroundSize: '20px 20px',
+                      backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+                    }}
+                  >
+                    <canvas
+                      ref={canvasRef}
+                      width={CANVAS_SIZE}
                       height={CANVAS_SIZE}
                       className="max-w-full max-h-full w-auto h-auto object-contain block border border-gray-200"
                       style={{ maxWidth: '100%', maxHeight: '100%' }}
@@ -329,7 +336,7 @@ const MacIconMaker = () => {
                     <span>{CANVAS_SIZE / 2}</span>
                     <span>{CANVAS_SIZE}</span>
                   </div>
-                  
+
                   {/* 左下角 */}
                   <div className="w-6 h-6 border-r border-t border-gray-300 bg-gray-50/90"></div>
                   {/* 下标尺 */}
@@ -353,7 +360,7 @@ const MacIconMaker = () => {
                 {error && <p className="text-xs text-red-500 mt-2 font-medium">{error}</p>}
               </div>
             )}
-            
+
             {/* 底部按钮区域 */}
             {image && (
               <div className="flex gap-2 mt-auto">
@@ -379,7 +386,7 @@ const MacIconMaker = () => {
                   <Upload size={14} />
                   <span>重新上传</span>
                 </button>
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDownload();
@@ -400,30 +407,29 @@ const MacIconMaker = () => {
             <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
               <Settings size={14} /> 图标调整
             </h3>
-            
-            {/* 快速预设按钮 - 单独一行 */}
+
             <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
               <div className="flex items-center gap-3">
                 <span className="text-xs text-gray-500 whitespace-nowrap">预设：</span>
                 <div className="flex items-center gap-2 flex-1">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); applyPreset('macos'); }} 
+                  <button
+                    onClick={(e) => { e.stopPropagation(); applyPreset('macos'); }}
                     className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 transition-colors flex-1"
                     title="macOS"
                   >
                     <Layout className="text-gray-600 mb-1" size={16} />
                     <span className="text-xs text-gray-600">macOS</span>
                   </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); applyPreset('ios'); }} 
+                  <button
+                    onClick={(e) => { e.stopPropagation(); applyPreset('ios'); }}
                     className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 transition-colors flex-1"
                     title="iOS / 平铺"
                   >
                     <Smartphone className="text-gray-600 mb-1" size={16} />
                     <span className="text-xs text-gray-600">iOS</span>
                   </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); applyPreset('circle'); }} 
+                  <button
+                    onClick={(e) => { e.stopPropagation(); applyPreset('circle'); }}
                     className="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-white border border-transparent hover:border-gray-200 transition-colors flex-1"
                     title="圆形"
                   >
@@ -433,48 +439,50 @@ const MacIconMaker = () => {
                 </div>
               </div>
             </div>
-            
+
+            {/* 缩放 (Top Priority) */}
+            <div>
+              <div className="flex justify-between mb-1">
+                <label className="text-xs font-medium text-gray-500">图标缩放</label>
+                <span className="text-xs text-gray-400">{(settings.scale * 100).toFixed(0)}%</span>
+              </div>
+              <input
+                type="range" min="0.1" max="1.5" step="0.01"
+                value={settings.scale}
+                onChange={(e) => setSettings({ ...settings, scale: Number(e.target.value) })}
+                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              />
+            </div>
+
+            {/* 外边距 */}
+            <div>
+              <div className="flex justify-between mb-1">
+                <label className="text-xs font-medium text-gray-500">外边距</label>
+                <span className="text-xs text-gray-400">{settings.margin}px</span>
+              </div>
+              <input
+                type="range" min="0" max="250"
+                value={settings.margin}
+                onChange={(e) => setSettings({ ...settings, margin: Number(e.target.value) })}
+                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              />
+            </div>
+
             {/* 圆角 */}
             <div>
               <div className="flex justify-between mb-1">
                 <label className="text-xs font-medium text-gray-500">圆角半径</label>
                 <span className="text-xs text-gray-400">{settings.radius}px</span>
               </div>
-              <input 
-                type="range" min="0" max="512" 
+              <input
+                type="range" min="0" max="512"
                 value={settings.radius}
-                onChange={(e) => setSettings({...settings, radius: Number(e.target.value)})}
+                onChange={(e) => setSettings({ ...settings, radius: Number(e.target.value) })}
                 className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
 
-            {/* 内边距 */}
-            <div>
-              <div className="flex justify-between mb-1">
-                <label className="text-xs font-medium text-gray-500">图标内边距 (Padding)</label>
-                <span className="text-xs text-gray-400">{settings.padding}px</span>
-              </div>
-              <input 
-                type="range" min="0" max="300" 
-                value={settings.padding}
-                onChange={(e) => setSettings({...settings, padding: Number(e.target.value)})}
-                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
 
-             {/* 缩放 */}
-             <div>
-              <div className="flex justify-between mb-1">
-                <label className="text-xs font-medium text-gray-500">图标缩放</label>
-                <span className="text-xs text-gray-400">{(settings.scale * 100).toFixed(0)}%</span>
-              </div>
-              <input 
-                type="range" min="0.1" max="2" step="0.05"
-                value={settings.scale}
-                onChange={(e) => setSettings({...settings, scale: Number(e.target.value)})}
-                className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
 
             {/* 阴影 */}
             <div>
@@ -482,32 +490,32 @@ const MacIconMaker = () => {
                 <label className="text-xs font-medium text-gray-500">阴影强度</label>
                 <span className="text-xs text-gray-400">{settings.shadowOpacity}</span>
               </div>
-              <input 
+              <input
                 type="range" min="0" max="1" step="0.05"
                 value={settings.shadowOpacity}
-                onChange={(e) => setSettings({...settings, shadowOpacity: Number(e.target.value)})}
+                onChange={(e) => setSettings({ ...settings, shadowOpacity: Number(e.target.value) })}
                 className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
             </div>
 
-             {/* 背景色 */}
-             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-medium text-gray-500">启用背景色</label>
-                  <input 
-                      type="color" 
-                      value={settings.bgColor}
-                      onChange={(e) => setSettings({...settings, bgColor: e.target.value})}
-                      className="w-8 h-8 cursor-pointer p-0 overflow-hidden"
-                      disabled={!settings.useBg}
-                  />
-                </div>
-                <button 
-                    onClick={() => setSettings({...settings, useBg: !settings.useBg})}
-                    className={`w-10 h-6 rounded-full transition-colors relative ${settings.useBg ? 'bg-blue-600' : 'bg-gray-300'}`}
-                >
-                    <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.useBg ? 'translate-x-4' : ''}`} />
-                </button>
+            {/* 背景色 */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-gray-500">启用背景色</label>
+                <input
+                  type="color"
+                  value={settings.bgColor}
+                  onChange={(e) => setSettings({ ...settings, bgColor: e.target.value })}
+                  className="w-8 h-8 cursor-pointer p-0 overflow-hidden"
+                  disabled={!settings.useBg}
+                />
+              </div>
+              <button
+                onClick={() => setSettings({ ...settings, useBg: !settings.useBg })}
+                className={`w-10 h-6 rounded-full transition-colors relative ${settings.useBg ? 'bg-blue-600' : 'bg-gray-300'}`}
+              >
+                <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.useBg ? 'translate-x-4' : ''}`} />
+              </button>
             </div>
           </div>
         </div>
@@ -517,12 +525,12 @@ const MacIconMaker = () => {
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 h-full flex flex-col">
             {/* 使用说明 */}
             <div className="w-full">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">如何应用到 Mac App？</h3>
-                <ol className="list-decimal pl-4 space-y-2 text-sm text-gray-700">
-                    <li>在预览图片上右键选择"复制图片"，或者下载图片后再复制。</li>
-                    <li>在 Finder 中找到你要修改的 App，按 <kbd className="bg-gray-100 px-1 rounded">Cmd+I</kbd> 打开简介。</li>
-                    <li>点击左上角的小图标，按 <kbd className="bg-gray-100 px-1 rounded">Cmd+V</kbd> 粘贴即可。</li>
-                </ol>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">如何应用到 Mac App？</h3>
+              <ol className="list-decimal pl-4 space-y-2 text-sm text-gray-700">
+                <li>在预览图片上右键选择"复制图片"，或者下载图片后再复制。</li>
+                <li>在 Finder 中找到你要修改的 App，按 <kbd className="bg-gray-100 px-1 rounded">Cmd+I</kbd> 打开简介。</li>
+                <li>点击左上角的小图标，按 <kbd className="bg-gray-100 px-1 rounded">Cmd+V</kbd> 粘贴即可。</li>
+              </ol>
             </div>
           </div>
         </div>
