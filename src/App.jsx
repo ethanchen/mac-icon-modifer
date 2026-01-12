@@ -127,6 +127,85 @@ const MacIconMaker = () => {
     }
   };
 
+  // 从 HTML 中提取图片 URL 并 fetch
+  const fetchImageFromHtml = async (html) => {
+    console.log('[Paste] 解析 HTML:', html);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const img = doc.querySelector('img');
+    if (!img?.src) {
+      console.log('[Paste] HTML 中未找到 img 标签');
+      return null;
+    }
+
+    console.log('[Paste] 找到图片 URL:', img.src);
+    try {
+      const response = await fetch(img.src);
+      if (!response.ok) throw new Error('Fetch failed');
+      const blob = await response.blob();
+      console.log('[Paste] Fetch 成功, blob:', blob);
+      return new File([blob], 'pasted_image.png', { type: blob.type });
+    } catch (err) {
+      console.log('[Paste] Fetch 图片失败:', err);
+      setError('无法获取剪贴板中的图片，可能是跨域限制');
+      return null;
+    }
+  };
+
+  // 全局监听剪贴板粘贴图片
+  useEffect(() => {
+    const handlePaste = async (e) => {
+      console.log('[Paste] 事件触发', e);
+      const items = e.clipboardData?.items;
+      console.log('[Paste] clipboardData items:', items);
+      if (!items) {
+        console.log('[Paste] 无 items，退出');
+        return;
+      }
+
+      console.log('[Paste] items 数量:', items.length);
+
+      // 优先检查是否有直接的图片数据
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        console.log(`[Paste] item[${i}] type:`, item.type, 'kind:', item.kind);
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          console.log('[Paste] 获取到图片文件:', file);
+          if (file) {
+            setFileName('pasted_icon');
+            processFile(file);
+          }
+          return;
+        }
+      }
+
+      // 没有直接图片，尝试解析 HTML 中的 img
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type === 'text/html') {
+          e.preventDefault();
+          item.getAsString(async (html) => {
+            const file = await fetchImageFromHtml(html);
+            if (file) {
+              setFileName('pasted_icon');
+              processFile(file);
+            }
+          });
+          return;
+        }
+      }
+    };
+
+    console.log('[Paste] 注册全局 paste 监听');
+    document.addEventListener('paste', handlePaste);
+    return () => {
+      console.log('[Paste] 移除全局 paste 监听');
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, []);
+
   // 绘制逻辑
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -355,8 +434,8 @@ const MacIconMaker = () => {
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform ${error ? 'bg-red-100 text-red-500' : 'bg-blue-50 text-blue-500'}`}>
                   {error ? <AlertCircle size={28} /> : <Upload size={28} />}
                 </div>
-                <h3 className="font-semibold text-gray-900">点击或拖拽上传</h3>
-                <p className="text-xs text-gray-500 mt-1">支持 PNG, JPG, SVG, ICNS</p>
+                <h3 className="font-semibold text-gray-900">点击、拖拽或粘贴上传</h3>
+                <p className="text-xs text-gray-500 mt-1">支持 PNG, JPG, SVG, ICNS · 可直接 <kbd className="bg-gray-100 px-1 rounded">Cmd+V</kbd> 粘贴</p>
                 {error && <p className="text-xs text-red-500 mt-2 font-medium">{error}</p>}
               </div>
             )}
